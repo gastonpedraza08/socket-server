@@ -23,26 +23,30 @@ function createSockets(appServer) {
         console.log('new connection', socket.id);
 
         socket.on("disconnect", () => {
+            let userId;
             console.log('disconnection', socket.id);
             for (let prop in clients) {
-                if (clients[prop].socketId === socket.id) {
+                console.log(prop);
+                console.log(clients[prop].render.socketId)
+                console.log(socket.id)
+                if (clients[prop].render.socketId === socket.id) {
+                    userId = prop;
                     delete clients[prop];
                     break;
                 }
             }
-            socket.broadcast.emit('drop-client', socket.id);
+            console.log("drop", Object.keys(clients))
+            socket.broadcast.emit('drop-client', userId);
         });
 
         socket.on('persist-player', data => {
             console.log("persis-player")
             clients[data.user.id] = data;
-            clients[data.user.id].socketId = socket.id;
             socket.broadcast.emit('new-client', data)
         });
 
         socket.on('persist-position', data => {
             clients[data.user.id] = data;
-            clients[data.user.id].socketId = socket.id;
         });
 
         //socket.on("client-position", (data) => {
@@ -57,7 +61,7 @@ function createSockets(appServer) {
 
     setInterval(() => {
         io.emit('clients', clients);
-    }, 1000);
+    }, 500);
 
 }
 
